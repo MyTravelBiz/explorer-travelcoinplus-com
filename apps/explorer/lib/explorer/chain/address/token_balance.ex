@@ -1,0 +1,124 @@
+defmodule Explorer.Chain.Address.TokenBalance do
+  @moduledoc """
+  Represents a token balance from an address.
+  """
+
+  use Ecto.Schema
+  import Ecto.Changeset
+  import Ecto.Query, only: [from: 2, subquery: 1]
+
+  alias Explorer.Chain
+  alias Explorer.Chain.Address.TokenBalance
+  alias Explorer.Chain.{Address, Block, Hash, Token}
+
+  @typedoc """
+   *  `address` - The `t:Explorer.Chain.Address.t/0` that is the balance's owner.
+   *  `address_hash` - The address hash foreign key.
+   *  `token` - The `t:Explorer.Chain.Token/0` so that the address has the balance.
+   *  `token_contract_address_hash` - The contract address hash foreign key.
+   *  `block_number` - The block's number that the transfer took place.
+   *  `value` - The value that's represents the balance.
+  """
+  @type t :: %__MODULE__{
+          address: %Ecto.Association.NotLoaded{} | Address.t(),
+          address_hash: Hash.Address.t(),
+          token: %Ecto.Association.NotLoaded{} | Token.t(),
+          token_contract_address_hash: Hash.Address,
+          block_number: Block.block_number(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t(),
+          value: Decimal.t() | nil
+        }
+
+  schema "address_token_balances" do
+    field(:value, :decimal)
+    field(:block_number, :integer)
+    field(:value_fetched_at, :utc_datetime)
+
+    belongs_to(:address, Address, foreign_key: :address_hash, references: :hash, type: Hash.Address)
+
+    belongs_to(
+      :token,
+      Token,
+      foreign_key: :token_contract_address_hash,
+      references: :contract_address_hash,
+      type: Hash.Address
+    )
+
+    timestamps()
+  end
+
+  @optional_fields ~w(value value_fetched_at)a
+  @required_fields ~w(address_hash block_number token_contract_address_hash)a
+  @allowed_fields @optional_fields ++ @required_fields
+
+  @doc false
+  def changeset(%TokenBalance{} = token_balance, attrs) do
+    token_balance
+    |> cast(attrs, @allowed_fields)
+    |> validate_required(@required_fields)
+    |> foreign_key_constraint(:address_hash)
+    |> foreign_key_constraint(:token_contract_address_hash)
+    |> unique_constraint(:block_number, name: :token_balances_address_hash_block_number_index)
+  end
+
+  {:ok, burn_address_hash} = Chain.string_to_address_hash("0x0000000000000000000000000000000000000000")
+  @burn_address_hash burn_address_hash
+
+  @doc """
+  Builds an `Ecto.Query` to fetch the last token balances that have value greater than 0.
+
+  The last token balances from an Address is the last block indexed.
+  """
+  def last_token_balances(address_hash) do
+    query =
+      from(
+        tb in TokenBalance,
+        where: tb.address_hash == ^address_hash,
+        distinct: :token_contract_address_hash,
+        order_by: [desc: :block_number]
+      )
+
+    from(tb in subquery(query), where: tb.value > 0, preload: :token)
+  end
+
+  @doc """
+  Builds an `Ecto.Query` to group all tokens with their number of holders.
+  """
+  def tokens_grouped_by_number_of_holders do
+    query = unique_holders()
+
+    from(
+      tb in subquery(query),
+      where: tb.value > 0,
+      select: {tb.token_contract_address_hash, count(tb.address_hash)},
+      group_by: tb.token_contract_address_hash
+    )
+  end
+
+  defp unique_holders do
+    from(
+      tb in TokenBalance,
+      distinct: [:address_hash, :token_contract_address_hash],
+      where: tb.address_hash != ^@burn_address_hash,
+      order_by: [desc: :block_number]
+    )
+  end
+
+  @doc """
+  Builds an `Ecto.Query` to fetch the unfetched token balances.
+
+  Unfetched token balances are the ones that have the column `value_fetched_at` nil. This query also
+  ignores the burn_address for tokens ERC-721 since the most tokens ERC-721 don't allow get the
+  balance for burn_address.
+  """
+  def unfetched_token_balances do
+    from(
+      tb in TokenBalance,
+      join: t in Token,
+      on: tb.token_contract_address_hash == t.contract_address_hash,
+      where: is_nil(tb.value_fetched_at),
+      where: (tb.address_hash != ^@burn_address_hash and t.type != "ERC-721") or t.type == "ERC-20"
+    )
+  end
+end

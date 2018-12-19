@@ -19,12 +19,7 @@
             <%= link to: block_path(@conn, :index), class: "dropdown-item" do %>
               <%= gettext("Blocks") %>
             <% end %>
-            <%= link to: uncle_path(@conn, :uncle), class: "dropdown-item" do %>
-              <%= gettext("Uncles") %>
-            <% end %>
-            <%= link to: reorg_path(@conn, :reorg), class: "dropdown-item" do %>
-              <%= gettext("Forked Blocks (Reorgs)") %>
-            <% end %>
+            
           </div>
         </li>
         <li class="nav-item dropdown">

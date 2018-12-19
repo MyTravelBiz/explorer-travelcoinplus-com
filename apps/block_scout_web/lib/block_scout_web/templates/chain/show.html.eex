@@ -38,14 +38,6 @@
             <%= Cldr.Number.to_string!(@transaction_estimated_count, format: "#,###") %>
           </span>
         </div>
-        <div class="dashboard-banner-network-stats-item">
-          <span class="dashboard-banner-network-stats-label">
-            <%= gettext "Wallet addresses" %>
-          </span>
-          <span class="dashboard-banner-network-stats-value" data-selector="address-count">
-            <%= Cldr.Number.to_string!(@address_estimated_count, format: "#,###") %>
-          </span>
-        </div>
       </div>
     </div>
   </div>

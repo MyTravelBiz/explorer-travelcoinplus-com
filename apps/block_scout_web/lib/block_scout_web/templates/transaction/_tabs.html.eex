@@ -9,21 +9,6 @@
           ) %>
     </li>
   <% end %>
-  <li class="nav-item">
-    <%= link(
-          gettext("Internal Transactions"),
-          class: "nav-link #{tab_status("internal_transactions", @conn.request_path)}",
-          to: transaction_internal_transaction_path(@conn, :index, @transaction)
-        ) %>
-  </li>
-  <li class="nav-item">
-    <%= link(
-          gettext("Logs"),
-          class: "nav-link #{tab_status("logs", @conn.request_path)}",
-          to: transaction_log_path(@conn, :index, @transaction),
-          "data-test": "transaction_logs_link"
-        ) %>
-  </li>
 </ul>
 
 <!-- MOBILE DROPDOWN NAV -->

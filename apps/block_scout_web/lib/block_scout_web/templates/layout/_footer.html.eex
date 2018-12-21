@@ -3,6 +3,6 @@
     <%= link to: chain_path(@conn, :show), class: "footer-brand" do %>
       <img class="footer-logo" src="<%= logo() %>" />
     <% end %>
-    <%= gettext "Copyright %{year} TravelCoin Foundation. All Rights Reserved."%>
+    <%= gettext "Copyright 2018. TravelCoin Foundation. All Rights Reserved."%>
   </div>
 </footer>

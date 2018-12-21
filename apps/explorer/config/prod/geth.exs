@@ -1,11 +1,12 @@
 use Mix.Config
 
 config :explorer,
+  block_interval: 10_000,
   json_rpc_named_arguments: [
     transport: EthereumJSONRPC.HTTP,
     transport_options: [
       http: EthereumJSONRPC.HTTP.HTTPoison,
-      url: System.get_env("ETHEREUM_JSONRPC_HTTP_URL") || "https://mainnet.infura.io/8lTvJTKmHPCHazkneJsY",
+      url: System.get_env("ETHEREUM_JSONRPC_HTTP_URL") || "http://10.0.1.154:8545",
       http_options: [recv_timeout: 60_000, timeout: 60_000, hackney: [pool: :ethereum_jsonrpc]]
     ],
     variant: EthereumJSONRPC.Geth
@@ -14,7 +15,7 @@ config :explorer,
     transport: EthereumJSONRPC.WebSocket,
     transport_options: [
       web_socket: EthereumJSONRPC.WebSocket.WebSocketClient,
-      url: System.get_env("ETHEREUM_JSONRPC_WS_URL") || "wss://mainnet.infura.io/8lTvJTKmHPCHazkneJsY/ws"
-    ],
+      url: System.get_env("ETHEREUM_JSONRPC_WS_URL") || "ws://10.0.1.154:8546"
+    ]
     variant: EthereumJSONRPC.Geth
   ]

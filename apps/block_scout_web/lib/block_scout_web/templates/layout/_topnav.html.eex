@@ -42,14 +42,6 @@
                 ) %>
           </div>
         </li>
-        <li class="nav-item">
-          <%= link to: address_path(@conn, :index), class: "nav-link topnav-nav-link" do %>
-            <span class="nav-link-icon">
-              <%= render BlockScoutWeb.IconsView, "_accounts_icon.html" %>
-            </span>
-            <%= gettext("Accounts") %>
-          <% end %>
-        </li>
       </ul>
       <div class="search-form d-lg-flex d-inline-block">
         <%= form_for @conn, chain_path(@conn, :search), [class: "form-inline my-2 my-lg-0", method: :get, enforce_utf8: false], fn f -> %>
